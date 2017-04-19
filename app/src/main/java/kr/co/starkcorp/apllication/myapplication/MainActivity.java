@@ -1,12 +1,16 @@
 package kr.co.starkcorp.apllication.myapplication;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -24,7 +28,12 @@ import android.location.LocationManager;
 import android.util.Log;
 
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -34,6 +43,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+
+import java.util.Arrays;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity
@@ -46,6 +59,9 @@ public class MainActivity extends AppCompatActivity
     MarkerOptions myLocationMarker;
     private SensorManager mSensorManager;
 
+    private SlidingUpPanelLayout mLayout;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +69,69 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        ListView lv = (ListView) findViewById(R.id.list);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(MainActivity.this, "onItemClick", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        List<String> your_array_list = Arrays.asList(
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6"
+        );
+
+        // This is the array adapter, it takes the context of the activity as a
+        // first parameter, the type of list view as a second parameter and your
+        // array as a third parameter.
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_list_item_1,
+                your_array_list);
+
+        lv.setAdapter(arrayAdapter);
+
+        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mLayout.setAnchorPoint(0.7f);
+        mLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+        mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+                Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+            }
+
+            @Override
+            public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+                Log.i(TAG, "onPanelStateChanged " + newState);
+            }
+        });
+        mLayout.setFadeOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            }
+        });
+
+        TextView t = (TextView) findViewById(R.id.name);
+        t.setText(Html.fromHtml(getString(R.string.hello)));
+        Button f = (Button) findViewById(R.id.follow);
+        f.setText(Html.fromHtml(getString(R.string.follow)));
+        f.setMovementMethod(LinkMovementMethod.getInstance());
+        f.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse("http://www.twitter.com/umanoapp"));
+                startActivity(i);
+            }
+        });
+
+        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -61,6 +139,7 @@ public class MainActivity extends AppCompatActivity
                         .setAction("Action", null).show();
             }
         });
+        */
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -180,8 +259,6 @@ public class MainActivity extends AppCompatActivity
         if (myLocationMarker == null) {
             myLocationMarker = new MarkerOptions();
             myLocationMarker.position(new LatLng(location.getLatitude(), location.getLongitude()));
-            myLocationMarker.title("â— ë‚´ ìœ„ì¹˜\n");
-            myLocationMarker.snippet("â— GPSë¡œ í™•ì¸í•œ ìœ„ì¹˜");
             myLocationMarker.icon(BitmapDescriptorFactory.fromResource(R.drawable.mylocation));
             map.addMarker(myLocationMarker);
         } else {
